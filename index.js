@@ -2,14 +2,22 @@ const searchBtn = document.querySelector("#search-btn");
 const searchField = document.querySelector("#search-field");
 const moviesContainer = document.querySelector("#movies-container");
 const watchListPage = document.querySelector("#watchlist");
-let myWatchlist = [];
+let myWatchlist;
+if (localStorage.length > 0 && document.body.id === "watchlist") {
+    renderMyWatchlist();
+} else {
+    myWatchlist = []
+}
 
 // searchField.value = "blade runner"
 
 searchBtn.addEventListener("click", renderSearch);
 moviesContainer.addEventListener("click", (e) => {
-    if (e.target.dataset.id) {
-        addToWatchlist(e.target.dataset.id)
+    if (e.target.dataset.add) {
+        addToWatchlist(e.target.dataset.add)
+    }
+    if (e.target.dataset.remove) {
+        removeFromWatchlist(e.target.dataset.remove)
     }
 
 })
@@ -17,13 +25,26 @@ moviesContainer.addEventListener("click", (e) => {
 function renderMyWatchlist() {
         myWatchlist = JSON.parse(localStorage.getItem("myWatchlist"))
         moviesContainer.innerHTML = printMovies(myWatchlist, true);
-        console.table(myWatchlist);
     }
 
 async function addToWatchlist(movieId) {
     const searchResult = await getMoviesData();
     const chosenMovie = searchResult.results.filter(movie => movie.id == movieId)
     addToLocalStorage(chosenMovie[0])
+}
+
+function removeFromWatchlist(movieId) {
+    console.log(movieId) 
+    console.log(myWatchlist) 
+    let index;
+    for (let movie of myWatchlist) {
+        if (movie.id == movieId) {
+            index = myWatchlist.indexOf(movie)
+            myWatchlist.splice(index, 1);
+        }
+    }
+    localStorage.setItem("myWatchlist", JSON.stringify(myWatchlist));
+    renderMyWatchlist()
 }
 
 function addToLocalStorage(element) {
@@ -61,7 +82,7 @@ function printMovies(movies, fromWatchList) {
                                     
                 <p class="movie-duration">${movie.release_date.slice(0, 4)}</p>
                 <p class="movie-category">${movie.genre_ids}</p>
-                <button class="watchlist-btn" data-id=${movie.id}><img src="img/${fromWatchList ? "minus.png" : "plus.png"}" class="small-icon" alt="">${fromWatchList ? "Remove" : "Watchlist"}</button>
+                <button class="watchlist-btn" data-id=${movie.id} data-${fromWatchList ? "remove" : "add"}=${movie.id}><img src="img/${fromWatchList ? "minus.png" : "plus.png"}" class="small-icon" alt="">${fromWatchList ? "Remove" : "Watchlist"}</button>
                 <p class="movie-description">${movie.overview}</p>
             </div>
         </div>`;
